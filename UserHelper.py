@@ -37,7 +37,7 @@ def donothing(var=''):
 ## Change this to pupup
 
 # Open up packmanager.list in order to read all of the currently supported pack managers
-file_read = open("packagemanager.list", "r")
+file_read = open('_internal/Util/packagemanager.list', "r")
 # transform packmanager list in raw data packmanager_data
 packmanager_data = file_read.read()
 #close the open file packmanager.list
@@ -59,6 +59,8 @@ def Update(Pass, act_inv):
                 # DNF
                 elif packmanager in ["dnf"]:
                     os.system(cmd_upd)
+                    dnf_update  = f'echo {Pass} | sudo -S {packmanager} update'
+                    os.system(dnf_update)
                 # SNAP
                 elif packmanager in ["snap"]:
                     snap_update = f'echo {Pass} | sudo -S {packmanager} refresh'
@@ -98,7 +100,8 @@ def Upgrade(Pass, act_inv):
                     os.system(cmd_upg)
                 # DNF
                 elif packmanager in ["dnf"]:
-                    os.system(cmd_upg)
+                    dnf_run = f'echo {Pass} | sudo -S {packmanager} update -y'
+                    os.system(dnf_run)
                 # SNAP
                 elif packmanager in ["snap"]:
                     snap_upgrade = f'echo {Pass} | sudo -S {packmanager} refresh'
@@ -141,7 +144,11 @@ def System_Clean(Pass, act_inv):
                     os.system(cmd_clean)
                 # SNAP
                 elif packmanager in ["snap"]:
+                    os.system("pushd ./_internal")
+                    os.system("pushd ./Util")
                     snap_cmd = f'echo {Pass} | sudo -S bash Snap_clean.sh'
+                    os.system("popd")
+                    os.system("popd")
                 # YUM
                 elif packmanager in ["yum"]:
                     os.system(cmd_clean)
@@ -193,7 +200,7 @@ def button3_action():
     if Pass_value == '': 
        New_Window(),                                           
     System_Clean(Pass_value, action_invoked),
-    messagebox.showinfo("Clean System Complete", "Clean System Button was pressed"),
+    messagebox.showinfo("Clean System Complete", "System Clean has completed"),
 
 ##
 

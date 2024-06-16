@@ -10,6 +10,9 @@ import platform
 import sys
 import os
 import subprocess
+#import time and progress bar
+from time import sleep
+#from progress.spinner import MoonSpinner
 
 #empty window open until user closes
 
@@ -26,15 +29,7 @@ Error_log = open('Error_log.txt', 'a')
 #Function to find out the Operating System/package manager
 ###delete### print( platform.platform(), file =OSfile)
 
-#Define button actions
 
-#Variable which is null - check if user input already exists
-Pass_value = ''
-## Define function that does nothing but passes
-def donothing(var=''):
-    pass
-
-## Change this to pupup
 
 # Open up packmanager.list in order to read all of the currently supported pack managers
 file_read = open('_internal/Util/packagemanager.list', "r")
@@ -45,10 +40,85 @@ file_read.close()
 
 #transform the raw data in a list
 packmanager_list = packmanager_data.splitlines()
+nr_pckgmngr = len(packmanager_list)
 
-def Update(Pass, act_inv):
-    if act_inv == "Update":
-        for packmanager in packmanager_list:
+#Define button actions
+
+#Variable which is null - check if user input already exists
+Pass_value = ''
+## Define function that does nothing but passes
+
+def donothing(var=''):
+    pass
+
+## Change this to pupup
+
+
+#### Define the progress bar
+# Percent shown in Progress_Bar_window
+percent_show = StringVar()
+
+def Progress_Bar_Window(Pass, act_inv):
+    window_kid = Toplevel(win)
+    window_kid.title("Progress")
+    progress_bar(window_kid,Pass,act_inv)
+
+# Create progress bar that takes total number of tasks in Number
+def progress_bar(window,Pass,act_inv):
+    #define the bar function that will show the progress
+    Progress_bar = Progressbar(window, orient=HORIZONTAL, length= 300)
+    # progress bar location on the new window
+    Progress_bar.grid(pady=10)
+    # Show the % of the progress in the new Window
+    percent_show_label = Label(window, textvariable = percent_show).grid()
+    InProgress_text = Text(window, height = 10, width = 52)
+    InProgress_text.grid(padx = 150, pady =150)
+    progress = 0
+    total_progress = nr_pckgmngr
+    progress_percent = 100/total_progress
+    current_progress = 0
+    for item in packmanager_list:
+        Progress_text = f'Currently working on {item}\n\n'
+        if act_inv=="Update":
+            Update(Pass,act_inv,item)
+        elif act_inv=="Upgrade":
+            Upgrade(Pass,act_inv,item)
+        elif act_inv=="System Clean":
+            System_Clean(Pass, act_inv,item)
+        else:
+            donothing()
+
+
+        #while current progress is not finished add the next item worked on to the progress bar log
+        InProgress_text.insert(tk.END, Progress_text)
+        while current_progress <= total_progress and progress<= 100:
+            # give a time window of 0.05 to update the bar
+            
+            #increase the progress bar by the progress_percent
+            percent_show.set(str(int((current_progress/total_progress)*100))+"%")
+            # increase the visual progress bar by the progress_percent
+            Progress_bar['value']+= progress_percent
+            #increase current progress by 1
+            current_progress+=1
+            # keep updating the main window win even when sleep function is in progress
+            win.update_idletasks()
+            window.update_idletasks()
+        progress+= progress_percent
+        Completed_progress_text = f'{item} has completed\n\n'
+        InProgress_text.insert(tk.END, Completed_progress_text)
+
+
+
+
+
+#with Bar('Processing...') as bar:
+#    for i in range(100):
+#        sleep(0.02)
+#        bar.next()
+####
+
+
+def Update(Pass, act_inv, packmanager):
             cmd = os.system("which " + packmanager)
             cmd_upd = f'echo {Pass} | sudo -S {packmanager} update'
 
@@ -86,11 +156,9 @@ def Update(Pass, act_inv):
                 elif packmanager in ["apk-tools", "apk"]:
                     apk_upd = f'echo {Pass} |sudo -S apk update && upgrade -y'
                     os.system(apk_upd)
-
+    #win.update_idletasks()
 ### need to finish this
-def Upgrade(Pass, act_inv):
-    if act_inv == "Upgrade":
-        for packmanager in packmanager_list:
+def Upgrade(Pass, act_inv, packmanager):
             cmd = os.system("which " + packmanager)
             cmd_upg = f'echo {Pass} | sudo -S {packmanager} upgrade -y'
 
@@ -128,10 +196,8 @@ def Upgrade(Pass, act_inv):
                 elif packmanager in ["apk-tools", "apk"]:
                     apk_upg = f'echo {Pass} |sudo -S apk update && upgrade -y'
                     os.system(apk_upg)
-
-def System_Clean(Pass, act_inv):
-    if act_inv == "System Clean":
-        for packmanager in packmanager_list:
+    #win.update_idletasks()
+def System_Clean(Pass, act_inv,packmanager):
             cmd = os.system("which " + packmanager)
             cmd_clean = f'echo {Pass} | sudo -S {packmanager} autoremove -y'
 
@@ -167,7 +233,7 @@ def System_Clean(Pass, act_inv):
                     os.system(flatpak_repair)
                 # APK, APK-TOOLS
                 ## APK seems to have a better way of uninstalling packages
-
+    #win.update_idletasks()
 
 ###
 
@@ -183,7 +249,7 @@ def button1_action():
     action_invoked = "Update"
     if Pass_value == '': 
         New_Window(),
-    Update(Pass_value, action_invoked), 
+    Progress_Bar_Window(Pass_value, action_invoked),
     messagebox.showinfo("Update Complete", "Update System Button was completed")
     # This is used to test that multiple commands run
     #messagebox.showinfo("Test multiple commands", "This shows both commands run"),
@@ -192,14 +258,14 @@ def button2_action():
     action_invoked = "Upgrade"
     if Pass_value == '': 
         New_Window(),                                           
-    Upgrade(Pass_value, action_invoked),
+    Progress_Bar_Window(Pass_value, action_invoked),
     messagebox.showinfo("Upgrade Complete", "Upgrade System Button was completed")
 
 def button3_action():
     action_invoked = "System Clean"
     if Pass_value == '': 
        New_Window(),                                           
-    System_Clean(Pass_value, action_invoked),
+    Progress_Bar_Window(Pass_value, action_invoked),
     messagebox.showinfo("Clean System Complete", "System Clean has completed"),
 
 ##

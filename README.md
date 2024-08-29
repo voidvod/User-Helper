@@ -5,6 +5,6 @@ This project will have the terminal/console detected, linux distro as well as wh
 
 This project will focus mostly on User ease of use.
 
-The goald for this project is for the application to detect the package manager and run the coomands for the user
+The goal for this project is for the application to detect the package manager and run the coomands for the user
 Example: User in Linux mint uses Apt/apt-get, the app should detect that and present a button for update, upgrade, cleaning cache as well as installing some more known applications for the user.
 
